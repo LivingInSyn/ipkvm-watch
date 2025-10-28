@@ -1,5 +1,6 @@
 import subprocess
 import logging
+import yaml
 
 logging.basicConfig(level=logging.INFO)
 
@@ -32,5 +33,28 @@ def get_arp_via_subprocess() -> tuple[set[str], set[str]]:
 
     return ips, macs
 
+def check_macs(macs: set[str], indicators: dict) -> list[dict]:
+    found = []
+    for vendor, prefixes in indicators['network']['mac_addresses'].items():
+        for prefix in prefixes['prefixes']:
+            for mac in macs:
+                if mac.lower().startswith(prefix['prefix'].lower()):
+                    found.append({
+                        'type:': 'mac_address',
+                        'vendor': vendor,
+                        'mac_address': mac,
+                        'confidence': prefix['confidence']
+                    })
+    return found
+        
+
 if __name__ == "__main__":
-    get_arp_via_subprocess()
+    # load the indicators yaml
+    with open("indicators.yaml", "r") as f:
+        indicators = f.read()
+        indicators = yaml.safe_load(indicators)
+    # get the mac addresses and ips on the LAN
+    ips, macs = get_arp_via_subprocess()
+    # check the mac addresses against known vendors
+    mac_indications = check_macs(macs, indicators)
+    print(mac_indications)

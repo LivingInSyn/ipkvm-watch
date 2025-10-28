@@ -1,0 +1,31 @@
+network:
+  mac_addresses:
+    pikvm:
+      prefixes:
+        - prefix: '28:CD:C1:'
+          confidence: 'low'
+        - prefix: 'B8:27:EB:'
+          confidence: 'low'
+        - prefix: 'D8:3A:DD:'
+          confidence: 'low'
+        - prefix: 'DC:A6:32:'
+          confidence: 'low'
+        - prefix: 'E4:5F:01:'
+          confidence: 'low'
+    TinyPilot:
+      prefixes:
+        - prefix: '04:C9:8B:1'
+          confidence: 'high'
+    JetKVM:
+      prefixes:
+        - prefix: '30:52:53'
+          confidence: 'high'
+          reference: 'https://github.com/jetkvm/kvm/issues/375#issuecomment-2923289636'
+        - prefix: '02:'
+          confidence: 'low'
+          reference: 'https://github.com/jetkvm/rv1106-system/pull/19/files'
+    Comet:
+      prefixes:
+        - prefix: '94:83:C4'
+          confidence: 'high'
+
