@@ -29,3 +29,19 @@ network:
         - prefix: '94:83:C4'
           confidence: 'high'
 
+http:
+  ssl:
+    pikvm: 'PiKVM'
+    Comet: 'GLKVM'
+  favicon:
+    pikvm:
+      - -1040945478
+      - -692926325
+    Comet:
+      - -186012304
+  title:
+    pikvm: 
+      - 'PiKVM'
+      - 'Pi-KVM'
+    Comet: 
+      - 'GLKVM'
