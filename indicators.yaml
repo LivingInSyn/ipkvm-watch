@@ -56,24 +56,23 @@ http:
       - 'GLKVM'
 
 usb:
-  vid_pid:
-    pikvm:
-      - vid: '1D6B'
-        pid: '0104'
-        serial: CAFEBABE
-        manufacturer: PiKVM
-    TinyPilot:
-      - vid: '1D6B'
-        pid: '0104'
-        serial: '6b65796d696d6570690'
-        manufacturer: tinypilot
-    JetKVM:
-      - vid: '1D6B'
-        pid: '0044'
-        serial: ''
-        manufacturer: ''
-    Comet:
-      - vid: '1d6b'
-        pid: '0104'
-        serial: 'CAFEBABE'
-        manufacturer: GLKVM
+  pikvm:
+    - vid: '1D6B'
+      pid: '0104'
+      serial: CAFEBABE
+      manufacturer: PiKVM
+  TinyPilot:
+    - vid: '1D6B'
+      pid: '0104'
+      serial: '6b65796d696d6570690'
+      manufacturer: tinypilot
+  JetKVM:
+    - vid: '1D6B'
+      pid: '0044'
+      serial: ''
+      manufacturer: ''
+  Comet:
+    - vid: '1d6b'
+      pid: '0104'
+      serial: 'CAFEBABE'
+      manufacturer: GLKVM
