@@ -151,11 +151,40 @@ def get_favicon_hash(ip: str, indicators: dict) -> list[int]:
                 logging.debug(f"Found favicon hash match for {vendor} on {ip}")
     return findings
 
+def check_mdns(indicators: dict) -> list[dict]:
+    # Implement mDNS checking logic here
+    for vendor in indicators['network']['mdns']:
+        for domain in indicators['network']['mdns'][vendor]:
+            # perform mDNS query for the domain
+            # by running the following command: "dscacheutil -q host -a name"
+            try:
+                result = subprocess.run(['dscacheutil', '-q', 'host', '-a', 'name', domain], capture_output=True, text=True, timeout=3)
+            except subprocess.TimeoutExpired:
+                logging.warning(f"Timeout expired when trying to query mDNS for {domain}")
+                continue
+            output = result.stdout
+            if result.returncode != 0:
+                logging.debug(f"Could not get mDNS info for {domain}: {result.stderr}")
+                continue
+            if "ip_address: " in output:
+                ip_address = output.split("ip_address: ")[1].split("\n")[0]
+                return [{
+                    'type': 'mdns',
+                    'vendor': vendor,
+                    'domain': domain,
+                    'ip': ip_address,
+                    'confidence': 'high'
+                }]
+    return []
+
 if __name__ == "__main__":
     # load the indicators yaml
     with open("indicators.yaml", "r") as f:
         indicators = f.read()
         indicators = yaml.safe_load(indicators)
+    # check mDNS for known vendors
+    mdns_indications = check_mdns(indicators)
+    print(mdns_indications)
     # get the mac addresses and ips on the LAN
     ips, macs = get_arp_via_subprocess()
     # check the mac addresses against known vendors
@@ -164,3 +193,4 @@ if __name__ == "__main__":
     # check the IPs for HTTP indicators
     http_indications = check_http(ips, indicators)
     print(http_indications)
+    
