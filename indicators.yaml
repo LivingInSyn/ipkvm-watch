@@ -1,4 +1,13 @@
 network:
+  mdns:
+    pikvm:
+      - 'pikvm.local'
+    TinyPilot:
+      - 'tinypilot.local'
+    JetKVM:
+      - 'jetkvm.local'
+    Comet:
+      - 'glkvm.local'
   mac_addresses:
     pikvm:
       prefixes:
