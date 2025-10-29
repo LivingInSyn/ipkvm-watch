@@ -9,7 +9,7 @@ Right now this is aimed at MacOS devices but should be able to xfer to windows a
     - SSL common names
     - Page titles
 - Attached USB devices (for unchanged VID/PID/Serials/Manufacturers)
-- (soon) mDNS checks for people who have them on different subnets
+- mDNS checks (still defeated by subnetting/vlans)
 - (soon) heuristic checks on USB devices
     - (ex: things that look like KVMs)
 
