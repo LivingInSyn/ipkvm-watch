@@ -68,9 +68,9 @@ usb:
       manufacturer: tinypilot
   JetKVM:
     - vid: '1D6B'
-      pid: '0044'
+      pid: '0104'
       serial: ''
-      manufacturer: ''
+      manufacturer: 'JetKVM'
   Comet:
     - vid: '1d6b'
       pid: '0104'
