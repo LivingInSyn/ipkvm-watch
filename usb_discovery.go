@@ -116,6 +116,9 @@ func checkUSBDevices(usbIndicators map[string][]USBDevice) []USBFinding {
 				}
 			}
 			// check if the serial number is in the output
+			if device.Serial == "" {
+				continue
+			}
 			if strings.Contains(usboutput, strings.ToLower(device.Serial)) {
 				f := USBFinding{
 					Vendor:       vendor,

@@ -1,5 +1,4 @@
-Bus 003 Device 005: ID 1d6b:0104 Linux Foundation Multifunction Composite Gadget
-Negotiated speed: High Speed (480Mbps)
+Bus 007 Device 003: ID 1d6b:0104 Linux Foundation Multifunction Composite Gadget
 Device Descriptor:
   bLength                18
   bDescriptorType         1
@@ -41,7 +40,7 @@ Device Descriptor:
           bcdHID               1.01
           bCountryCode            0 Not supported
           bNumDescriptors         1
-          bDescriptorType        34 (null)
+          bDescriptorType        34 Report
           wDescriptorLength      63
           Report Descriptors: 
             ** UNAVAILABLE **
@@ -81,7 +80,7 @@ Device Descriptor:
           bcdHID               1.01
           bCountryCode            0 Not supported
           bNumDescriptors         1
-          bDescriptorType        34 (null)
+          bDescriptorType        34 Report
           wDescriptorLength      78
           Report Descriptors: 
             ** UNAVAILABLE **
@@ -111,7 +110,7 @@ Device Descriptor:
           bcdHID               1.01
           bCountryCode            0 Not supported
           bNumDescriptors         1
-          bDescriptorType        34 (null)
+          bDescriptorType        34 Report
           wDescriptorLength      46
           Report Descriptors: 
             ** UNAVAILABLE **

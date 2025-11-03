@@ -16,4 +16,6 @@ Right now this is aimed at MacOS devices but should be able to xfer to windows a
 
 
 ## TODO:
-- Add DNS (e.g. `nslookup tinypilot.local`) which may allow detection when on a different VLAN (not in ARP table)
+- handle duplicates in the arp table from multiple adapters
+- avoid duplicate SSL queries
+- parallelize http queries

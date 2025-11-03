@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"os/exec"
+	"slices"
 	"strings"
 	"time"
 
@@ -28,6 +29,12 @@ type MDNSResult struct {
 	IPv6s  []*net.IPAddr
 }
 
+var IP_EXCLUSION = []string{
+	"224.0.0.251",
+	"239.255.255.250",
+	"169.254.169.254:443",
+}
+
 func arpDiscovery() (ARPDiscovery, error) {
 	// run arp -a and parse output
 	cmd := exec.Command("arp", "-a")
@@ -46,6 +53,9 @@ func arpDiscovery() (ARPDiscovery, error) {
 		if len(parts) >= 2 {
 			// get the IP
 			ip := strings.Trim(parts[1], "()")
+			if slices.Contains(IP_EXCLUSION, ip) {
+				continue
+			}
 			log.Debug().Str("IP", ip).Msg("Discovered IP via ARP")
 			ips = append(ips, ip)
 			// get the MAC

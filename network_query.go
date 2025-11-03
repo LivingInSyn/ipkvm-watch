@@ -37,7 +37,7 @@ func httpQueries(ips []string, domainNames []string, indicators HTTPConfig) []HT
 	combined_targets := append(ips, domainNames...)
 	// check the cert
 	for _, target := range combined_targets {
-		conn, err := tls.Dial("tcp", "target:443", conf)
+		conn, err := tls.Dial("tcp", fmt.Sprintf("%s:443", target), conf)
 		if err != nil {
 			log.Error().Err(err).Str("target", target).Msg("Error in Dial for SSL check")
 			continue
