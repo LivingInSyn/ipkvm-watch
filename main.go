@@ -1,6 +1,8 @@
 package main
 
 import (
+	"slices"
+
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -51,6 +53,14 @@ func main() {
 	checkDomains := []string{}
 	for _, m := range mdns {
 		checkDomains = append(checkDomains, m.Domain)
+		// remove IPs from IP list if the domain exists
+		for _, ip := range m.IPv4s {
+			ips := ip.String()
+			ipIndex := slices.Index(arp_results.IPs, ips)
+			if ipIndex != -1 {
+				arp_results.IPs = append(arp_results.IPs[:ipIndex], arp_results.IPs[ipIndex+1:]...)
+			}
+		}
 	}
 	http_findings := httpQueries(arp_results.IPs, checkDomains, config.HTTP)
 	for _, http_finding := range http_findings {
