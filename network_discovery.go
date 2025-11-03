@@ -32,7 +32,7 @@ type MDNSResult struct {
 var IP_EXCLUSION = []string{
 	"224.0.0.251",
 	"239.255.255.250",
-	"169.254.169.254:443",
+	"169.254.169.254",
 }
 
 func arpDiscovery() (ARPDiscovery, error) {

@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
 	"crypto/md5"
 	"crypto/tls"
 	"encoding/hex"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	"golang.org/x/net/html"
@@ -29,6 +32,7 @@ type HTTPFinding struct {
 
 func httpQueries(ips []string, domainNames []string, indicators HTTPConfig) []HTTPFinding {
 	httpFindings := []HTTPFinding{}
+	no_tls_hosts := []string{}
 	// make HTTP requests and check the title ssl certs
 	conf := &tls.Config{
 		InsecureSkipVerify: true,
@@ -37,13 +41,21 @@ func httpQueries(ips []string, domainNames []string, indicators HTTPConfig) []HT
 	combined_targets := append(ips, domainNames...)
 	// check the cert
 	for _, target := range combined_targets {
-		conn, err := tls.Dial("tcp", fmt.Sprintf("%s:443", target), conf)
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		d := tls.Dialer{
+			Config: conf,
+		}
+		//conn, err := tls.Dial("tcp", fmt.Sprintf("%s:443", target), conf)
+		conn, err := d.DialContext(ctx, "tcp", fmt.Sprintf("%s:443", target))
+		defer cancel()
 		if err != nil {
 			log.Error().Err(err).Str("target", target).Msg("Error in Dial for SSL check")
+			no_tls_hosts = append(no_tls_hosts, target)
 			continue
 		}
 		defer conn.Close()
-		certs := conn.ConnectionState().PeerCertificates
+		tlsConn := conn.(*tls.Conn)
+		certs := tlsConn.ConnectionState().PeerCertificates
 		for _, cert := range certs {
 			// check org and org unit against indicators
 			for vendor, indicator_org := range indicators.SSL {
@@ -72,6 +84,10 @@ func httpQueries(ips []string, domainNames []string, indicators HTTPConfig) []HT
 	}
 	// check the page title
 	for _, target := range combined_targets {
+		if slices.Contains(no_tls_hosts, target) {
+			log.Debug().Str("target", target).Msg("skipping target because TLS failed earlier")
+			continue
+		}
 		url := fmt.Sprintf("https://%s", target)
 		title, err := getPageElement(url, Title)
 		if err != nil {
@@ -105,6 +121,10 @@ func httpQueries(ips []string, domainNames []string, indicators HTTPConfig) []HT
 	}
 	// check the favicon
 	for _, target := range combined_targets {
+		if slices.Contains(no_tls_hosts, target) {
+			log.Debug().Str("target", target).Msg("skipping target because TLS failed earlier")
+			continue
+		}
 		url := fmt.Sprintf("https://%s", target)
 		favicon_hash, err := getFaviconHash(url)
 		if err != nil {
@@ -138,7 +158,7 @@ func httpQueries(ips []string, domainNames []string, indicators HTTPConfig) []HT
 
 func getFaviconHash(url string) (string, error) {
 	// try to parse the favicon localtion from the page
-	favicon_loc, err := getPageElement("https://glkvm.local", Favicon)
+	favicon_loc, err := getPageElement(url, Favicon)
 	if err != nil {
 		log.Info().Err(err).Msg("Error getting favicon location. Trying /favicon.ico")
 		favicon_loc = "/favicon.ico"
@@ -166,6 +186,10 @@ func getFaviconHash(url string) (string, error) {
 	defer resp.Body.Close()
 
 	// 2. Read the favicon data
+	if resp.ContentLength <= 0 {
+		log.Debug().Str("target", url).Msg("got 0 content lenth back for favicon, skipping")
+		return "", fmt.Errorf("got no data back from request")
+	}
 	faviconData := make([]byte, resp.ContentLength)
 	_, err = resp.Body.Read(faviconData)
 	if err != nil {
