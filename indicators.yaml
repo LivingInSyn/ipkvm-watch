@@ -44,10 +44,10 @@ http:
     Comet: 'GLKVM'
   favicon:
     pikvm:
-      - -1040945478
-      - -692926325
+      - '8a808b9028e16be3c1faac555888f0a6' #'-1040945478'
+      - #'' #-692926325 # note: I couldn't actually find this one...
     Comet:
-      - -186012304
+      - '4cd10e52d0a12897ed058184e2b6136c'
   title:
     pikvm: 
       - 'PiKVM'
