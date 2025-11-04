@@ -1,0 +1,77 @@
+Instance ID:                USB\VID_1D6B&PID_0104\CAFEBABE
+Device Description:         USB Composite Device
+Class Name:                 USB
+Class GUID:                 {36fc9e60-c465-11cf-8056-444553540000}
+Manufacturer Name:          (Standard USB Host Controller)
+Status:                     Started
+Driver Name:                usb.inf
+
+Instance ID:                USB\VID_1D6B&PID_0104&MI_04\9&9f4824e&0&0004
+Device Description:         USB Mass Storage Device
+Class Name:                 USB
+Class GUID:                 {36fc9e60-c465-11cf-8056-444553540000}
+Manufacturer Name:          Compatible USB storage device
+Status:                     Started
+Driver Name:                usbstor.inf
+
+Instance ID:                USB\VID_1D6B&PID_0104&MI_03\9&9f4824e&0&0003
+Device Description:         USB Mass Storage Device
+Class Name:                 USB
+Class GUID:                 {36fc9e60-c465-11cf-8056-444553540000}
+Manufacturer Name:          Compatible USB storage device
+Status:                     Started
+Driver Name:                usbstor.inf
+
+
+===== Get-CimInstance -ClassName Win32_PnPEntity
+
+Caption                     : Glinet Flash Drive USB Device
+Description                 : CD-ROM Drive
+InstallDate                 : 
+Name                        : Glinet Flash Drive USB Device
+Status                      : OK
+Availability                : 
+ConfigManagerErrorCode      : 0
+ConfigManagerUserConfig     : False
+CreationClassName           : Win32_PnPEntity
+DeviceID                    : USBSTOR\CDROM&VEN_GLINET&PROD_FLASH_DRIVE&REV_1.00\A&24467633&0&CAFEBABE&0
+ErrorCleared                : 
+ErrorDescription            : 
+LastErrorCode               : 
+PNPDeviceID                 : USBSTOR\CDROM&VEN_GLINET&PROD_FLASH_DRIVE&REV_1.00\A&24467633&0&CAFEBABE&0
+PowerManagementCapabilities : 
+PowerManagementSupported    : 
+StatusInfo                  : 
+SystemCreationClassName     : Win32_ComputerSystem
+SystemName                  : MACHINE
+ClassGuid                   : {4d36e965-e325-11ce-bfc1-08002be10318}
+CompatibleID                : {USBSTOR\CdRom, USBSTOR\RAW, GenCdRom}
+HardwareID                  : {USBSTOR\CdRomGlinet__Flash_Drive_____1.00, USBSTOR\CdRomGlinet__Flash_Drive_____, USBSTOR\CdRomGlinet__, USBSTOR\Glinet__Flash_Drive_____1...}
+Manufacturer                : (Standard CD-ROM drives)
+PNPClass                    : CDROM
+Present                     : True
+Service                     : cdrom
+PSComputerName              : 
+
+===== gwmi Win32_USBControllerDevice
+__GENUS             : 2
+__CLASS             : Win32_USBControllerDevice
+__SUPERCLASS        : CIM_ControlledBy
+__DYNASTY           : CIM_Dependency
+__RELPATH           : Win32_USBControllerDevice.Antecedent="\\\\MACHINE\\root\\cimv2:Win32_USBController.DeviceID=\"PCI\\\\VEN_1022&DEV_43F7&SUBSYS_11421B21&REV_01\\\\6&408B878&0&00
+                      600011\"",Dependent="\\\\MACHINE\\root\\cimv2:Win32_PnPEntity.DeviceID=\"USBSTOR\\\\CDROM&VEN_GLINET&PROD_FLASH_DRIVE&REV_1.00\\\\A&24467633&0&CAFEBABE&0\""
+__PROPERTY_COUNT    : 7
+__DERIVATION        : {CIM_ControlledBy, CIM_DeviceConnection, CIM_Dependency}
+__SERVER            : MACHINE
+__NAMESPACE         : root\cimv2
+__PATH              : \\MACHINE\root\cimv2:Win32_USBControllerDevice.Antecedent="\\\\MACHINE\\root\\cimv2:Win32_USBController.DeviceID=\"PCI\\\\VEN_1022&DEV_43F7&SUBSYS_11421B2
+                      1&REV_01\\\\6&408B878&0&00600011\"",Dependent="\\\\MACHINE\\root\\cimv2:Win32_PnPEntity.DeviceID=\"USBSTOR\\\\CDROM&VEN_GLINET&PROD_FLASH_DRIVE&REV_1.00\\\\A&2
+                      4467633&0&CAFEBABE&0\""
+AccessState         :
+Antecedent          : \\MACHINE\root\cimv2:Win32_USBController.DeviceID="PCI\\VEN_1022&DEV_43F7&SUBSYS_11421B21&REV_01\\6&408B878&0&00600011"
+Dependent           : \\MACHINE\root\cimv2:Win32_PnPEntity.DeviceID="USBSTOR\\CDROM&VEN_GLINET&PROD_FLASH_DRIVE&REV_1.00\\A&24467633&0&CAFEBABE&0"
+NegotiatedDataWidth :
+NegotiatedSpeed     :
+NumberOfHardResets  :
+NumberOfSoftResets  :
+PSComputerName      : MACHINE

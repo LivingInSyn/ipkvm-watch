@@ -61,18 +61,22 @@ usb:
       pid: '0104'
       serial: CAFEBABE
       manufacturer: PiKVM
+      windows_search_sring: ''
   TinyPilot:
     - vid: '1D6B'
       pid: '0104'
       serial: '6b65796d696d6570690'
       manufacturer: tinypilot
+      windows_search_sring: ''
   JetKVM:
     - vid: '1D6B'
       pid: '0104'
       serial: ''
       manufacturer: 'JetKVM'
+      windows_search_sring: ''
   Comet:
     - vid: '1d6b'
       pid: '0104'
       serial: 'CAFEBABE'
       manufacturer: GLKVM
+      windows_search_sring: 'glinet'

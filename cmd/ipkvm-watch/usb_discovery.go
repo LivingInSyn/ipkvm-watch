@@ -27,6 +27,13 @@ func getLinuxUSBDevices() string {
 	}
 	return string(out)
 }
+func getWindowsUSBDevices() string {
+	out, err := exec.Command("powershell.exe", "-c", "pnputil", "/enum-devices", "/connected", "/class USB").Output()
+	if err != nil {
+		log.Error().Err(err).Msg("subprocess to get USB devices failed")
+	}
+	return string(out)
+}
 
 type USBFinding struct {
 	Vendor       string
@@ -43,6 +50,9 @@ func checkUSBDevices(usbIndicators map[string][]USBDevice) []USBFinding {
 		usboutput = strings.ToLower(usboutput)
 	} else if runtime.GOOS == "linux" {
 		usboutput = getLinuxUSBDevices()
+		usboutput = strings.ToLower(usboutput)
+	} else if runtime.GOOS == "windows" {
+		usboutput = getWindowsUSBDevices()
 		usboutput = strings.ToLower(usboutput)
 	} else {
 		log.Warn().Str("os", runtime.GOOS).Msg("USB discovery not supported on this OS")
@@ -113,6 +123,36 @@ func checkUSBDevices(usbIndicators map[string][]USBDevice) []USBFinding {
 						Str("manufacturer", device.Manufacturer).
 						Str("confidence", "low").
 						Msg("Matched USB device VID/PID")
+				}
+			} else if runtime.GOOS == "windows" {
+				if strings.Contains(usboutput, device.WindowsSearchString) {
+					f := USBFinding{
+						Vendor:       vendor,
+						Manufacturer: device.Manufacturer,
+						Confidence:   "medium",
+					}
+					findings = append(findings, f)
+					log.Info().
+						Str("vendor", vendor).
+						Str("manufacturer", device.Manufacturer).
+						Str("confidence", "medium").
+						Msg("Matched USB Window device search string")
+				}
+				// also search on vid and pid
+				ss := fmt.Sprintf("VID_%s&PID_%s", device.VID, device.PID)
+				ss = strings.ToLower(ss)
+				if strings.Contains(usboutput, device.WindowsSearchString) {
+					f := USBFinding{
+						Vendor:       vendor,
+						Manufacturer: device.Manufacturer,
+						Confidence:   "medium",
+					}
+					findings = append(findings, f)
+					log.Info().
+						Str("vendor", vendor).
+						Str("manufacturer", device.Manufacturer).
+						Str("confidence", "medium").
+						Msg("Matched USB windows vid and pid")
 				}
 			}
 			// check if the serial number is in the output

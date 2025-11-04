@@ -79,8 +79,9 @@ type HTTPConfig struct {
 
 // USBDevice defines the configuration for a specific USB device.
 type USBDevice struct {
-	VID          string `yaml:"vid"`
-	PID          string `yaml:"pid"`
-	Serial       string `yaml:"serial"`
-	Manufacturer string `yaml:"manufacturer"`
+	VID                 string `yaml:"vid"`
+	PID                 string `yaml:"pid"`
+	Serial              string `yaml:"serial"`
+	Manufacturer        string `yaml:"manufacturer"`
+	WindowsSearchString string `yaml:"windows_search_sring"`
 }

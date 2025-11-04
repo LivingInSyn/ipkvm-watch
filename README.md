@@ -70,8 +70,15 @@ Normal operation:
 }
 ```
 
-
-## TODO:
+# TODO:
 - handle duplicates in the arp table from multiple adapters
-- avoid duplicate SSL queries
 - parallelize http queries
+- use EDID & Display Fingerpriting
+    - https://blog.grumpygoose.io/unemployfuscation-1a1721485312
+
+# Credits
+a LOT of the work for the IOCs comes from https://www.runzero.com/blog/oob-p1-ip-kvm/ which is written by
+
+- HD Moore
+- Tod Beardsley
+- Matthew Kienow
