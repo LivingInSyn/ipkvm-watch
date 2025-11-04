@@ -13,6 +13,13 @@ Right now this is aimed at MacOS devices but should be able to xfer to windows a
 - (soon) heuristic checks on USB devices
     - (ex: things that look like KVMs)
 
+# use
+Normal operation:
+
+`ipkvm-watch -i <path to indicators yaml>`
+
+`-d` turns on debug loggin
+
 
 
 ## TODO:

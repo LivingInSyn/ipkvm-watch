@@ -13,9 +13,9 @@ type Config struct {
 	USB     map[string][]USBDevice `yaml:"usb"`
 }
 
-func GetConfig() *Config {
+func GetConfig(path string) *Config {
 	c := &Config{}
-	yamlFile, err := os.ReadFile("indicators.yaml")
+	yamlFile, err := os.ReadFile(path)
 	if err != nil {
 		log.Error().Err(err).Msg("ReadFile: %v")
 		return nil

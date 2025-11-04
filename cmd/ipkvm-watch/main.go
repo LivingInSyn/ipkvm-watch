@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"slices"
 
@@ -20,13 +21,21 @@ type Results struct {
 }
 
 func main() {
+	configPath := flag.String("i", "indicators.yaml", "path to the indicators yaml file")
+	debugF := flag.Bool("d", false, "turn on debug (verbose) logging")
+	flag.Parse()
+
 	// This is a placeholder for the main function.
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	if *debugF {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	} else {
+		zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	}
 	log.Info().Msg("Starting network discovery")
 
 	// load the indicators.yaml file
-	config := GetConfig()
+	config := GetConfig(*configPath)
 
 	// create the output obj
 	r := Results{}
