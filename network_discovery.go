@@ -22,6 +22,10 @@ type ARPDiscovery struct {
 	IPs  []string
 	MACs []string
 }
+type ARPResult struct {
+	MAC    string
+	Vendor string
+}
 type MDNSResult struct {
 	Domain string
 	Vendor string
@@ -70,16 +74,20 @@ func arpDiscovery() (ARPDiscovery, error) {
 	}, nil
 }
 
-func checkARPMacs(mac_indicators map[string]MACPrefixGroup, discovered_macs []string) []string {
-	matched_vendors := []string{}
+func checkARPMacs(mac_indicators map[string]MACPrefixGroup, discovered_macs []string) []ARPResult {
+	matched_vendors := []ARPResult{}
 	for vendor, prefix_group := range mac_indicators {
 		for _, prefix_entry := range prefix_group.Prefixes {
 			prefix := strings.ToLower(prefix_entry.Prefix)
 			for _, discovered_mac := range discovered_macs {
 				discovered_mac = strings.ToLower(discovered_mac)
 				if strings.HasPrefix(discovered_mac, prefix) {
+					a := ARPResult{
+						MAC:    discovered_mac,
+						Vendor: vendor,
+					}
 					log.Info().Str("MAC", discovered_mac).Str("vendor", vendor).Msg("Matched MAC prefix")
-					matched_vendors = append(matched_vendors, vendor)
+					matched_vendors = append(matched_vendors, a)
 				}
 			}
 		}

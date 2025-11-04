@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"slices"
 
 	"github.com/rs/zerolog"
@@ -8,6 +10,13 @@ import (
 )
 
 type Indicators struct {
+}
+
+type Results struct {
+	MDNS         []MDNSResult  `json:"mdns"`
+	ARPResults   []ARPResult   `json:"arp"`
+	USBFindings  []USBFinding  `json:"usb"`
+	HTTPFindings []HTTPFinding `json:"http"`
 }
 
 func main() {
@@ -19,11 +28,15 @@ func main() {
 	// load the indicators.yaml file
 	config := GetConfig()
 
+	// create the output obj
+	r := Results{}
+
 	// perform mdns discovery
 	mdns, err := resolveMDNSNames(config.Network.MDNS)
 	if err != nil {
 		log.Error().Err(err).Msg("mDNS discovery failed")
 	} else {
+		r.MDNS = mdns
 		for _, result := range mdns {
 			log.Info().Str("domain", result.Domain).Msg("mDNS discovery result")
 		}
@@ -34,13 +47,15 @@ func main() {
 		log.Error().Err(err).Msg("ARP discovery failed")
 	} else {
 		matched_macs := checkARPMacs(config.Network.MACAddresses, arp_results.MACs)
+		r.ARPResults = matched_macs
 		for _, mac := range matched_macs {
-			log.Info().Str("mac", mac).Msg("Matched MAC address")
+			log.Info().Str("mac", mac.MAC).Msg("Matched MAC address")
 		}
 	}
 
 	// perform usb discovery
 	usb_findings := checkUSBDevices(config.USB)
+	r.USBFindings = usb_findings
 	for _, finding := range usb_findings {
 		log.Info().
 			Str("vendor", finding.Vendor).
@@ -63,6 +78,7 @@ func main() {
 		}
 	}
 	http_findings := httpQueries(arp_results.IPs, checkDomains, config.HTTP)
+	r.HTTPFindings = http_findings
 	for _, http_finding := range http_findings {
 		log.Info().
 			Str("vendor", http_finding.Vendor).
@@ -72,5 +88,12 @@ func main() {
 			Str("hostname", http_finding.Hostname).
 			Msg("http discovery result")
 	}
+
+	// format the output and write it as json
+	b, err := json.MarshalIndent(r, "", "  ")
+	if err != nil {
+		log.Error().Err(err).Msg("failed to marshal results as json")
+	}
+	fmt.Print(string(b))
 
 }
