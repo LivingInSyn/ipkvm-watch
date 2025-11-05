@@ -141,7 +141,7 @@ func checkUSBDevices(usbIndicators map[string][]USBDevice) []USBFinding {
 				// also search on vid and pid
 				ss := fmt.Sprintf("VID_%s&PID_%s", device.VID, device.PID)
 				ss = strings.ToLower(ss)
-				if strings.Contains(usboutput, device.WindowsSearchString) {
+				if strings.Contains(usboutput, ss) {
 					f := USBFinding{
 						Vendor:       vendor,
 						Manufacturer: device.Manufacturer,
