@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"os/exec"
+	"runtime"
 	"slices"
 	"strings"
 	"time"
@@ -39,18 +41,42 @@ var IP_EXCLUSION = []string{
 	"169.254.169.254",
 }
 
-func arpDiscovery() (ARPDiscovery, error) {
-	// run arp -a and parse output
-	cmd := exec.Command("arp", "-a")
-	stdout, err := cmd.Output()
-	if err != nil {
-		log.Err(err).Msg("Failed to run arp command")
-		return ARPDiscovery{}, err
-	}
-	// for each line in stdout get the IP address
+func parseArpWindows(arpInput string) (ARPDiscovery, error) {
 	ips := []string{}
 	macs := []string{}
-	for _, line := range strings.Split(string(stdout), "\n") {
+	// sample input
+	// Interface: 172.26.176.1 --- 0x48
+	//   Internet Address      Physical Address      Type
+	//   172.26.182.63         00-15-5d-e8-bf-8b     dynamic
+	//   172.26.191.255        ff-ff-ff-ff-ff-ff     static
+	for _, line := range strings.Split(arpInput, "\n") {
+		// skip lines without double spaces, those are interface defs
+		// and headers (Internet Address....)
+		if strings.HasPrefix(line, "Interface ") || strings.HasPrefix(line, "  Internet ") {
+			continue
+		}
+		//
+		fields := strings.Fields(line)
+		if len(fields) >= 2 {
+			ip := fields[0]
+			mac := fields[1]
+			// windows returns MACs with dashes and indicators are written with colons
+			// so we're going to replace - with : on the macs
+			mac = strings.Replace(mac, "-", ":", -1)
+			ips = append(ips, ip)
+			macs = append(macs, mac)
+		}
+	}
+	return ARPDiscovery{
+			IPs:  ips,
+			MACs: macs,
+		},
+		nil
+}
+func parseArpNixMac(arpInput string) (ARPDiscovery, error) {
+	ips := []string{}
+	macs := []string{}
+	for _, line := range strings.Split(arpInput, "\n") {
 		// parse line to get IP address
 		// sample line is "? (192.168.68.56) at e6:c0:b:4b:d:26 on en0 ifscope "
 		parts := strings.Fields(line)
@@ -69,9 +95,29 @@ func arpDiscovery() (ARPDiscovery, error) {
 		}
 	}
 	return ARPDiscovery{
-		IPs:  ips,
-		MACs: macs,
-	}, nil
+			IPs:  ips,
+			MACs: macs,
+		},
+		nil
+}
+
+func arpDiscovery() (ARPDiscovery, error) {
+	// run arp -a and parse output
+	cmd := exec.Command("arp", "-a")
+	stdout, err := cmd.Output()
+	if err != nil {
+		log.Err(err).Msg("Failed to run arp command")
+		return ARPDiscovery{}, err
+	}
+	// for each line in stdout get the IP address
+	if runtime.GOOS == "darwin" || runtime.GOOS == "linux" {
+		return parseArpNixMac(string(stdout))
+	} else if runtime.GOOS == "windows" {
+		return parseArpWindows(string(stdout))
+	} else {
+		log.Error().Str("os", runtime.GOOS).Msg("ARP discovery not supported on this OS")
+		return ARPDiscovery{}, fmt.Errorf("failed to perform ARP discovery")
+	}
 }
 
 func checkARPMacs(mac_indicators map[string]MACPrefixGroup, discovered_macs []string) []ARPResult {

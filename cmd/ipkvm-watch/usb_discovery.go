@@ -125,7 +125,7 @@ func checkUSBDevices(usbIndicators map[string][]USBDevice) []USBFinding {
 						Msg("Matched USB device VID/PID")
 				}
 			} else if runtime.GOOS == "windows" {
-				if strings.Contains(usboutput, device.WindowsSearchString) {
+				if device.WindowsSearchString != "" && strings.Contains(usboutput, device.WindowsSearchString) {
 					f := USBFinding{
 						Vendor:       vendor,
 						Manufacturer: device.Manufacturer,

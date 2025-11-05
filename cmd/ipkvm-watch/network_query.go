@@ -33,6 +33,9 @@ type HTTPFinding struct {
 func httpQueries(ips []string, domainNames []string, indicators HTTPConfig) []HTTPFinding {
 	httpFindings := []HTTPFinding{}
 	no_tls_hosts := []string{}
+	// remove duplicates from ips
+	slices.Sort(ips)
+	ips = slices.Compact(ips)
 	// make HTTP requests and check the title ssl certs
 	conf := &tls.Config{
 		InsecureSkipVerify: true,

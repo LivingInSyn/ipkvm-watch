@@ -34,4 +34,5 @@ go.work.sum
 .DS_Store
 
 # ignore any built binaries
-ipkvm-watch
+./ipkvm-watch.exe
+./ipkvm-watch
