@@ -190,7 +190,8 @@ func resolveMDNSNames(mdns_indicators map[string][]string) ([]MDNSResult, error)
 
 			// perform query
 			// create a context with a 3 second timeout
-			ctx, _ := context.WithTimeout(context.Background(), time.Second*3)
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+			defer cancel()
 			answer, src, err := server.QueryAddr(ctx, domain)
 			if err != nil {
 				log.Debug().Err(err).Str("hostname", domain).Msg("mDNS query failed")
