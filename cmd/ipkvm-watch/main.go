@@ -23,6 +23,7 @@ type Results struct {
 func main() {
 	configPath := flag.String("i", "indicators.yaml", "path to the indicators yaml file")
 	debugF := flag.Bool("d", false, "turn on debug (verbose) logging")
+	noMdnsListen := flag.Bool("m", false, "if set, no mdns ports will be opened and only subprocesses will be used")
 	flag.Parse()
 
 	// This is a placeholder for the main function.
@@ -41,7 +42,13 @@ func main() {
 	r := Results{}
 
 	// perform mdns discovery
-	mdns, err := resolveMDNSNames(config.Network.MDNS)
+	var mdns []MDNSResult
+	var err error
+	if !*noMdnsListen {
+		mdns, err = resolveMDNSNames(config.Network.MDNS)
+	} else {
+		mdns, err = mDNSDiscoverySubp(config.Network.MDNS)
+	}
 	if err != nil {
 		log.Error().Err(err).Msg("mDNS discovery failed")
 	} else {
