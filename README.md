@@ -19,6 +19,7 @@ Normal operation:
 `ipkvm-watch -i <path to indicators yaml>`
 
 `-d` turns on debug logging
+`-m` turns on MDNS discovery by subprocess only which can sometimes be stealthier on macos (avoids user notifications)
 
 ## Sample Output
 ```json
