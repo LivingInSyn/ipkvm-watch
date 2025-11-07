@@ -141,22 +141,71 @@ func checkARPMacs(mac_indicators map[string]MACPrefixGroup, discovered_macs []st
 	return matched_vendors
 }
 
-// func mDNSDiscoveryMacOS(domains []string) ([]string, error) {
-// 	found_domains := []string{}
-// 	for _, domain := range domains {
-// 		cmd := exec.Command("dscacheutil", "-q", "host", "-a", "name", domain)
-// 		stdout, err := cmd.Output()
-// 		if err != nil {
-// 			log.Err(err).Str("domain", domain).Msg("Failed to run dscacheutil command")
-// 			continue
-// 		}
-// 		if string(stdout) != "" {
-// 			log.Debug().Str("domain", domain).Msg("Discovered domain via mDNS")
-// 			found_domains = append(found_domains, domain)
-// 		}
-// 	}
-// 	return found_domains, nil
-// }
+func mDNSDiscoverySubp(mdns_indicators map[string][]string) ([]MDNSResult, error) {
+	found_domains := []MDNSResult{}
+
+	for vendor, domains := range mdns_indicators {
+		for _, domain := range domains {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if runtime.GOOS == "darwin" {
+				cmd := exec.CommandContext(ctx, "dscacheutil", "-q", "host", "-a", "name", domain)
+				stdout, err := cmd.Output()
+				if err != nil {
+					log.Err(err).Str("domain", domain).Msg("Failed to run dscacheutil command")
+					continue
+				}
+				if string(stdout) != "" {
+					log.Debug().Str("domain", domain).Msg("Discovered domain via mDNS")
+					mdns_result := MDNSResult{
+						Domain: domain,
+						Vendor: vendor,
+						IPv4s:  []net.IP{},
+						IPv6s:  []*net.IPAddr{},
+					}
+					found_domains = append(found_domains, mdns_result)
+				}
+			} else if runtime.GOOS == "linux" {
+				cmd := exec.CommandContext(ctx, "dig", domain, "-p", "5353", "@224.0.0.251")
+				stdout, err := cmd.Output()
+				if err != nil {
+					log.Err(err).Str("domain", domain).Msg("Failed to run dscacheutil command")
+					continue
+				}
+				if strings.Contains(string(stdout), "ANSWER SECTION") {
+					log.Debug().Str("domain", domain).Msg("Discovered domain via mDNS")
+					mdns_result := MDNSResult{
+						Domain: domain,
+						Vendor: vendor,
+						IPv4s:  []net.IP{},
+						IPv6s:  []*net.IPAddr{},
+					}
+					found_domains = append(found_domains, mdns_result)
+				}
+			} else if runtime.GOOS == "windows" {
+				// powershell.exe /c Resolve-DnsName glkvm.local
+				cmd := exec.CommandContext(ctx, "powershell.exe", "/c", "Resolve-DnsName", domain)
+				stdout, err := cmd.Output()
+				if err != nil {
+					log.Err(err).Str("domain", domain).Msg("Failed to run dscacheutil command")
+					continue
+				}
+				if strings.Contains(string(stdout), "IPAddress") {
+					log.Debug().Str("domain", domain).Msg("Discovered domain via mDNS")
+					mdns_result := MDNSResult{
+						Domain: domain,
+						Vendor: vendor,
+						IPv4s:  []net.IP{},
+						IPv6s:  []*net.IPAddr{},
+					}
+					found_domains = append(found_domains, mdns_result)
+				}
+			}
+
+		}
+	}
+	return found_domains, nil
+}
 
 func resolveMDNSNames(mdns_indicators map[string][]string) ([]MDNSResult, error) {
 	found_domains := []MDNSResult{}
