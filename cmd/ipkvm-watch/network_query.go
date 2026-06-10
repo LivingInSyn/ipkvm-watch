@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -32,7 +33,6 @@ type HTTPFinding struct {
 
 func httpQueries(ips []string, domainNames []string, indicators HTTPConfig) []HTTPFinding {
 	httpFindings := []HTTPFinding{}
-	no_tls_hosts := []string{}
 	// remove duplicates from ips
 	slices.Sort(ips)
 	ips = slices.Compact(ips)
@@ -42,120 +42,121 @@ func httpQueries(ips []string, domainNames []string, indicators HTTPConfig) []HT
 	}
 	//combine ips and domains into a single list of targets
 	combined_targets := append(ips, domainNames...)
-	// check the cert
+
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+	sem := make(chan struct{}, 10)
+
 	for _, target := range combined_targets {
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		d := tls.Dialer{
-			Config: conf,
-		}
-		//conn, err := tls.Dial("tcp", fmt.Sprintf("%s:443", target), conf)
-		conn, err := d.DialContext(ctx, "tcp", fmt.Sprintf("%s:443", target))
-		defer cancel()
-		if err != nil {
-			log.Error().Err(err).Str("target", target).Msg("Error in Dial for SSL check")
-			no_tls_hosts = append(no_tls_hosts, target)
-			continue
-		}
-		defer conn.Close()
-		tlsConn := conn.(*tls.Conn)
-		certs := tlsConn.ConnectionState().PeerCertificates
-		for _, cert := range certs {
-			// check org and org unit against indicators
-			for vendor, indicator_org := range indicators.SSL {
-				for _, certorg := range cert.Issuer.Organization {
-					if strings.Contains(certorg, indicator_org) {
-						f := HTTPFinding{
-							Vendor:     vendor,
-							Confidence: "high",
-							Type:       "SSL",
-							Value:      certorg,
-							Hostname:   target,
+		wg.Add(1)
+		go func(target string) {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
+			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			defer cancel()
+			d := tls.Dialer{
+				Config: conf,
+			}
+			conn, err := d.DialContext(ctx, "tcp", fmt.Sprintf("%s:443", target))
+			if err != nil {
+				log.Error().Err(err).Str("target", target).Msg("Error in Dial for SSL check")
+				return
+			}
+			tlsConn := conn.(*tls.Conn)
+			certs := tlsConn.ConnectionState().PeerCertificates
+			conn.Close()
+
+			for _, cert := range certs {
+				// check org and org unit against indicators
+				for vendor, indicator_org := range indicators.SSL {
+					for _, certorg := range cert.Issuer.Organization {
+						if strings.Contains(certorg, indicator_org) {
+							f := HTTPFinding{
+								Vendor:     vendor,
+								Confidence: "high",
+								Type:       "SSL",
+								Value:      certorg,
+								Hostname:   target,
+							}
+							mu.Lock()
+							httpFindings = append(httpFindings, f)
+							mu.Unlock()
+							log.Info().
+								Str("vendor", f.Vendor).
+								Str("confidence", f.Confidence).
+								Str("type", f.Type).
+								Str("value", f.Value).
+								Str("hostname", f.Hostname).
+								Msg("SSL certificate match found")
 						}
-						httpFindings = append(httpFindings, f)
-						log.Info().
-							Str("vendor", f.Vendor).
-							Str("confidence", f.Confidence).
-							Str("type", f.Type).
-							Str("value", f.Value).
-							Str("hostname", f.Hostname).
-							Msg("SSL certificate match found")
 					}
 				}
 			}
 
-		}
-	}
-	// check the page title
-	for _, target := range combined_targets {
-		if slices.Contains(no_tls_hosts, target) {
-			log.Debug().Str("target", target).Msg("skipping target because TLS failed earlier")
-			continue
-		}
-		url := fmt.Sprintf("https://%s", target)
-		title, err := getPageElement(url, Title)
-		if err != nil {
-			log.Error().Err(err).Str("url", url).Msg("Error fetching title")
-			continue
-		}
-		// check title against indicators
-		for vendor, titles := range indicators.Title {
-			for _, indicator_title := range titles {
-				if strings.Contains(title, indicator_title) {
-					f := HTTPFinding{
-						Vendor:     vendor,
-						Confidence: "medium",
-						Type:       "Title",
-						Value:      title,
-						Hostname:   target,
+			url := fmt.Sprintf("https://%s", target)
+			title, err := getPageElement(url, Title)
+			if err != nil {
+				log.Error().Err(err).Str("url", url).Msg("Error fetching title")
+			} else {
+				// check title against indicators
+				for vendor, titles := range indicators.Title {
+					for _, indicator_title := range titles {
+						if strings.Contains(title, indicator_title) {
+							f := HTTPFinding{
+								Vendor:     vendor,
+								Confidence: "medium",
+								Type:       "Title",
+								Value:      title,
+								Hostname:   target,
+							}
+							mu.Lock()
+							httpFindings = append(httpFindings, f)
+							mu.Unlock()
+							log.Info().
+								Str("vendor", f.Vendor).
+								Str("confidence", f.Confidence).
+								Str("type", f.Type).
+								Str("value", f.Value).
+								Str("hostname", f.Hostname).
+								Msg("Page title match found")
+						}
 					}
-					httpFindings = append(httpFindings, f)
-					log.Info().
-						Str("vendor", f.Vendor).
-						Str("confidence", f.Confidence).
-						Str("type", f.Type).
-						Str("value", f.Value).
-						Str("hostname", f.Hostname).
-						Msg("Page title match found")
 				}
 			}
-		}
-		// finally, check the favicon
 
-	}
-	// check the favicon
-	for _, target := range combined_targets {
-		if slices.Contains(no_tls_hosts, target) {
-			log.Debug().Str("target", target).Msg("skipping target because TLS failed earlier")
-			continue
-		}
-		url := fmt.Sprintf("https://%s", target)
-		favicon_hash, err := getFaviconHash(url)
-		if err != nil {
-			log.Error().Err(err).Str("url", url).Msg("Error fetching favicon")
-			continue
-		}
-		for vendor, hashes := range indicators.Favicon {
-			for _, hash := range hashes {
-				if hash == favicon_hash {
-					f := HTTPFinding{
-						Vendor:     vendor,
-						Confidence: "high",
-						Type:       "Favicon",
-						Value:      favicon_hash,
-						Hostname:   target,
+			favicon_hash, err := getFaviconHash(url)
+			if err != nil {
+				log.Error().Err(err).Str("url", url).Msg("Error fetching favicon")
+			} else {
+				for vendor, hashes := range indicators.Favicon {
+					for _, hash := range hashes {
+						if hash == favicon_hash {
+							f := HTTPFinding{
+								Vendor:     vendor,
+								Confidence: "high",
+								Type:       "Favicon",
+								Value:      favicon_hash,
+								Hostname:   target,
+							}
+							mu.Lock()
+							httpFindings = append(httpFindings, f)
+							mu.Unlock()
+							log.Info().
+								Str("vendor", f.Vendor).
+								Str("confidence", f.Confidence).
+								Str("type", f.Type).
+								Str("value", f.Value).
+								Str("hostname", f.Hostname).
+								Msg("Page title match found")
+						}
 					}
-					httpFindings = append(httpFindings, f)
-					log.Info().
-						Str("vendor", f.Vendor).
-						Str("confidence", f.Confidence).
-						Str("type", f.Type).
-						Str("value", f.Value).
-						Str("hostname", f.Hostname).
-						Msg("Page title match found")
 				}
 			}
-		}
+		}(target)
 	}
+	wg.Wait()
 	return httpFindings
 }
 

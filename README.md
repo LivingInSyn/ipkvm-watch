@@ -73,7 +73,6 @@ Normal operation:
 
 # TODO:
 - handle duplicates in the arp table from multiple adapters
-- parallelize http queries
 - use EDID & Display Fingerpriting
     - https://blog.grumpygoose.io/unemployfuscation-1a1721485312
 
