@@ -8,6 +8,8 @@ network:
       - 'jetkvm.local'
     Comet:
       - 'glkvm.local'
+    BliKVM:
+      - 'blikvm.local'
   mac_addresses:
     pikvm:
       prefixes:
@@ -54,6 +56,10 @@ http:
       - 'Pi-KVM'
     Comet: 
       - 'GLKVM'
+    BliKVM:
+      - 'BliKVM'
+    NanoKVM:
+      - 'NanoKVM'
 
 usb:
   pikvm:
@@ -80,3 +86,26 @@ usb:
       serial: 'CAFEBABE'
       manufacturer: GLKVM
       windows_search_sring: 'glinet'
+  BliKVM:
+    - vid: '1D6B'
+      pid: '0104'
+      serial: ''
+      manufacturer: 'BliKVM'
+      windows_search_sring: ''
+    - vid: '1493'
+      pid: '1572'
+      serial: ''
+      manufacturer: 'BliKVM'
+      windows_search_sring: ''
+  NanoKVM:
+    - vid: '3346'
+      pid: '1009'
+      serial: ''
+      manufacturer: 'Sipeed'
+      windows_search_sring: 'NanoKVM'
+  Aurga:
+    - vid: '1D6B'
+      pid: '0104'
+      serial: ''
+      manufacturer: 'Aurga'
+      windows_search_sring: 'Aurga'
